@@ -52,7 +52,8 @@ function save(msg) {
   if (s.behind && !s.dirty.length) git(['merge', '--ff-only', '@{u}']);
   if (s.dirty.length) {
     git(['add', '-A']);
-    const c = git(['commit', '-q', '-m', msg || `kit: update ${s.dirty.length} file(s)`]);
+    const c = git(['commit', '-q', '-m', msg || `kit: update ${s.dirty.length} file(s)`,
+      '-m', 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>']);
     if (!c.ok) { console.log('commit failed: ' + (c.err || c.out)); process.exit(1); }
   }
   if (!s.hasUpstream) { console.log('Committed. No remote set yet, so nothing was pushed.'); return; }
