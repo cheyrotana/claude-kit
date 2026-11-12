@@ -1,0 +1,11 @@
+{
+  "_note": "NexTask project (name_en) -> code. Used by the triage, report and ship skills. A workspace's folder differs per machine: it lives in machine.json (kit.js set-root). Read this through `node ~/.claude/scripts/kit.js projects`, which fills in `root`.",
+  "workspaces": {
+    "PY": { "name": "PhumiYerng", "memory": "phumiyerng" }
+  },
+  "projects": {
+    "Mobile App": { "org": "PhumiYerng", "workspace": "PY", "repos": ["mobile", "api"], "branch": "dev-rotana", "base": "origin/dev", "also_check": ["origin/dev-raksa"] },
+    "Web":        { "org": "PhumiYerng", "workspace": "PY", "repos": ["web", "api"],    "branch": "dev-rotana", "base": "origin/dev", "also_check": ["origin/dev-raksa"] },
+    "Website":    { "org": "PhumiYerng", "workspace": "PY", "repos": ["website"],       "branch": "dev-rotana", "base": "origin/dev", "also_check": ["origin/dev-raksa"] }
+  }
+}

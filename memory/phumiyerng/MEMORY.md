@@ -1,0 +1,12 @@
+- [Hot-reload the web app](web-run-hot-reload.md) — run with -d web-server + DEV_TOOLS (not -d chrome: opens extra tabs); hot reload, never kill/rebuild
+- [Followed communities list (deferred)](followed-communities-list.md) — after the Mobile tasks: API list endpoint + Profile "Following" screen
+- [Project fields handoff](project-fields-handoff.md) — Mobile-109/119 pushed to dev-rotana, not merged to dev; DevOps SQL; sql folder rules
+- [Pull latest = dev + dev-raksa](pull-latest-dev-raksa.md) — check origin/dev-raksa too; 2026-11-11 fixes pushed to dev-rotana; dev DB needs privacy SQL
+- [Notion dev log](notion-dev-log.md) — after each fix/merge/push: add Work log row + refresh status page in Notion "PhumiYerng Dev Log"
+- [NexTask tasks MCP](nextask-mcp.md) — PhumiYerng tasks live in NexTask (`nextask` MCP); flow: new/reopened → check commits → list still-to-fix
+- [Testing setup](testing-setup.md) — test via Claude in Chrome + screenshot each fix for NexTask; seeded accounts; local DB prep
+- [Message tone](message-tone.md) — error/validation text: polite full sentences starting "Please" / "សូម"
+- [Session handoff](session-handoff.md) — /handoff → Notion "Session handoffs" + local copy; /pickup reads; hooks nudge at low usage
+- [Chrome test alert](chrome-test-alert.md) — toast before Chrome tests is now automatic (PreToolUse hook); PushNotification doesn't show
+- [Line endings local fix](line-endings-local.md) — autocrlf caused CRLF diffs; fixed locally only (never push .gitattributes); website pending
+- [Ship/report workflow](ship-report-workflow.md) — fix → /ship (checks, push, MR links, trackers) → deploy → /report (verify, screenshot, Request Review)

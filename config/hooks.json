@@ -1,0 +1,22 @@
+{
+  "_note": "Merged into ~/.claude/settings.json by setup.js. Entries whose command uses ~/.claude/scripts/ belong to the kit and are replaced on every setup run.",
+  "statusLine": { "type": "command", "command": "node ~/.claude/scripts/statusline.js" },
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [
+        { "type": "command", "command": "node ~/.claude/scripts/kit.js hook-start", "timeout": 20 },
+        { "type": "command", "command": "node ~/.claude/scripts/handoff.js hook-start", "timeout": 10 }
+      ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "node ~/.claude/scripts/handoff.js hook-watch", "timeout": 10 } ] }
+    ],
+    "PostToolUse": [
+      { "hooks": [ { "type": "command", "command": "node ~/.claude/scripts/handoff.js hook-watch", "timeout": 10 } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "mcp__claude-in-chrome__(navigate|computer|browser_batch|tabs_create_mcp|find|form_input|read_page)",
+        "hooks": [ { "type": "command", "command": "node ~/.claude/scripts/chrome-toast.js", "timeout": 10 } ] }
+    ]
+  }
+}

@@ -1,0 +1,3 @@
+machine.json
+*.bak
+node_modules/
