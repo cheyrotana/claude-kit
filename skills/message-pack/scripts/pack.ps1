@@ -7,9 +7,13 @@
 # - No files: message only.
 # - Exactly one file: sent as it is (no zip).
 # - Several files: zipped, documents at the root and images in a subfolder. -Zip forces a zip.
-# Then the message goes on the clipboard (read back to confirm), and the attachment is opened
-# in Telegram Desktop's send window (-App telegram, the default) or selected in File Explorer
-# (-App explorer, or when Telegram isn't installed). -App none opens nothing.
+# Then the message goes on the clipboard (read back to confirm), and:
+# - -App paste (default): the message is kept in Win+V clipboard history and the file is put on
+#   the clipboard, so Ctrl+V in a chat attaches the file and Win+V pastes the message as caption.
+#   Falls back to Explorer when clipboard history is off.
+# - -App explorer: Explorer opens with the file selected (drag it in), Ctrl+V = the message.
+# - -App none: message on the clipboard only.
+# (Telegram's -sendpath was tried and dropped: it ignores the file when Telegram is already open.)
 param(
     [Parameter(Mandatory)] [string]$Name,
     [Parameter(Mandatory)] [string]$MessageFile,
@@ -18,7 +22,7 @@ param(
     [string]$ImagesFolder = "images",
     [string]$OutDir = "",
     [switch]$Zip,
-    [ValidateSet("telegram", "explorer", "none")] [string]$App = "telegram"
+    [ValidateSet("paste", "explorer", "none")] [string]$App = "paste"
 )
 $ErrorActionPreference = "Stop"
 
@@ -81,24 +85,47 @@ if ($attachment -and $text.Length -gt 1024) {
 }
 
 # Clipboard last, so nothing else in this run overwrites it, and read back to confirm.
+Add-Type -AssemblyName System.Windows.Forms
 Set-Clipboard -Value $text
 if ((Get-Clipboard -Raw).TrimEnd() -ne $text) { throw "Clipboard copy did not take. The message is in $MessageFile" }
 "CLIPBOARD ok ({0} characters)" -f $text.Length
 
 if (-not $attachment -or $App -eq "none") { return }
 
-$telegram = @(
-    "$env:APPDATA\Telegram Desktop\Telegram.exe",
-    "$env:LOCALAPPDATA\Programs\Telegram Desktop\Telegram.exe",
-    "C:\Program Files\Telegram Desktop\Telegram.exe"
-) | Where-Object { Test-Path $_ } | Select-Object -First 1
-
-if ($App -eq "telegram" -and $telegram) {
-    # Telegram's own "send this file" entry point: it asks for the chat, with the file attached.
-    Start-Process $telegram -ArgumentList '-sendpath', "`"$attachment`""
-    "OPENED Telegram with the attachment"
-} else {
-    if ($App -eq "telegram") { "Telegram Desktop not found; opening File Explorer instead." }
-    Start-Process explorer.exe -ArgumentList "/select,`"$attachment`""
-    "OPENED File Explorer with the attachment selected"
+function Test-TextInHistory([string]$want) {
+    # Reads Windows clipboard history (Win+V) to confirm the message is in it.
+    try {
+        Add-Type -AssemblyName System.Runtime.WindowsRuntime
+        $null = [Windows.ApplicationModel.DataTransfer.Clipboard, Windows.ApplicationModel.DataTransfer, ContentType = WindowsRuntime]
+        $asTask = [System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1' } | Select-Object -First 1
+        $run = { param($op, [type]$t) $task = $asTask.MakeGenericMethod($t).Invoke($null, @($op)); $task.Wait(); $task.Result }
+        $items = (& $run ([Windows.ApplicationModel.DataTransfer.Clipboard]::GetHistoryItemsAsync()) ([Windows.ApplicationModel.DataTransfer.ClipboardHistoryItemsResult])).Items
+        foreach ($i in $items | Select-Object -First 5) {
+            if ($i.Content.Contains('Text')) {
+                $s = & $run ($i.Content.GetTextAsync()) ([string])
+                if ($s.TrimEnd() -eq $want) { return $true }
+            }
+        }
+    } catch { }
+    return $false
 }
+
+$historyOn = (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Clipboard" -Name EnableClipboardHistory -ErrorAction SilentlyContinue).EnableClipboardHistory -eq 1
+
+if ($App -eq "paste" -and $historyOn) {
+    # Ctrl+V pastes the file (chat apps attach it); the message waits in Win+V history.
+    # (Pasting file and text together doesn't work: Telegram drops the text.)
+    Start-Sleep -Milliseconds 1500   # let history record the message as its own item
+    if (Test-TextInHistory $text) {
+        $list = New-Object System.Collections.Specialized.StringCollection
+        [void]$list.Add($attachment)
+        [System.Windows.Forms.Clipboard]::SetFileDropList($list)
+        "PASTE MODE: Ctrl+V = $(Split-Path -Leaf $attachment); Win+V = the message"
+        return
+    }
+    "Message not found in clipboard history; using File Explorer instead."
+} elseif ($App -eq "paste") {
+    "Clipboard history (Win+V) is off; using File Explorer instead. Turn it on with Win+V for paste mode."
+}
+Start-Process explorer.exe -ArgumentList "/select,`"$attachment`""
+"EXPLORER MODE: drag $(Split-Path -Leaf $attachment) from the open Explorer window; Ctrl+V = the message"

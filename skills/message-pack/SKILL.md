@@ -1,13 +1,16 @@
 ---
 name: message-pack
-description: Prepare a message for someone (a teammate, lead, lecturer, client) together with the files it needs, ready to send in Telegram (or Slack, email, any chat) - write the message in the user's voice, check its links and facts, gather or make the attachments (reports, docs, PDFs, screenshots, images), zip several files into one, put the message on the clipboard and open Telegram with the file already attached. Use whenever the user says "write a message to X", "send X the files", "prepare a message with attachments", "what do I send to X", "zip the screenshots and write a message", "hand this over to X", or wants a message plus attachments for anyone, even if they don't mention zipping, the clipboard or Telegram.
+description: Prepare a message for someone (a teammate, lead, lecturer, client) together with the files it needs, ready to send in Telegram (or Slack, email, any chat) - write the message in the user's voice, check its links and facts, gather or make the attachments (reports, docs, PDFs, screenshots, images), zip several files into one, and load the clipboard so Ctrl+V attaches the file and Win+V pastes the message. Use whenever the user says "write a message to X", "send X the files", "prepare a message with attachments", "what do I send to X", "zip the screenshots and write a message", "hand this over to X", or wants a message plus attachments for anyone, even if they don't mention zipping, the clipboard or Telegram.
 ---
 
 # Message pack
 
-The goal is the least work for the user: Telegram opens with the file already attached, the message is on the clipboard, and the user only picks the chat, presses Ctrl+V in the caption and sends. You can't press Send or choose the chat yourself (there is no messaging connector). If a mail or chat connector is available and the user wants it there, you may put the message in as a draft, but only send with their explicit OK.
+The goal is the least work for the user: in the chat, Ctrl+V attaches the file, Win+V pastes the message into the caption, and they press Send. You can't press Send or choose the chat yourself (there is no messaging connector). If a mail or chat connector is available and the user wants it there, you may put the message in as a draft, but only send with their explicit OK.
 
-Why this shape: Telegram ignores text pasted together with a file (one Ctrl+V can't carry both), but its "send this file" window has a caption box. Opening that window with the file attached and the text on the clipboard is the fewest steps that always work.
+Why this shape, from testing in Telegram Desktop:
+- One Ctrl+V can't carry both: with a file and text on the clipboard together, Telegram attaches the file and drops the text.
+- Telegram's `-sendpath` ("send this file") ignores the file when Telegram is already running, which is nearly always, so it isn't used.
+- So the file goes on the clipboard (Ctrl+V) and the message waits in Windows clipboard history (Win+V). When clipboard history is off, the script falls back to Explorer: drag the file in, Ctrl+V the message.
 
 ## 1. Work out what goes in
 
@@ -53,18 +56,20 @@ A message that sends someone to a broken link or a wrong fact costs the user cre
     -Files <doc1>, <doc2> -Images <folder>\*.png -ImagesFolder screenshots
 ```
 
-It attaches one file as it is or zips several, checks the message for link-looking file names and the caption limit, copies the message to the clipboard last and reads it back, then opens Telegram with the attachment. Options: `-Zip` forces a zip for a single file; `-App explorer` selects the file in File Explorer instead (for email, Slack or other apps); `-App none` opens nothing. Leave out `-Files` / `-Images` for a message with no attachment. Fix any WARNING it prints before telling the user to send. If the clipboard copy fails, point the user to the `.txt` file.
+It attaches one file as it is or zips several, checks the message for link-looking file names and the caption limit, copies the message to the clipboard and confirms it, then (default `-App paste`) confirms the message is in clipboard history and puts the file on the clipboard. The last line says which mode it ended in: `PASTE MODE` or `EXPLORER MODE` (history off). Options: `-Zip` forces a zip for a single file; `-App explorer` always uses the Explorer drag (handy for email); `-App none` leaves just the message on the clipboard. Leave out `-Files` / `-Images` for a message with no attachment. Fix any WARNING it prints before telling the user to send. If the clipboard copy fails, point the user to the `.txt` file.
+
+Don't run the script again, or copy anything, after telling the user to send: it would replace what's on their clipboard.
 
 ## 6. Tell the user
 
 Show the message text so they can read it, then the steps:
 
-**Telegram (default):**
-1. Telegram is open with `<file>` attached: choose <recipient>.
-2. Click the caption box and press Ctrl+V.
+**PASTE MODE:**
+1. Open the chat with <recipient>, click the message box, press **Ctrl+V**: `<file>` attaches.
+2. Click the caption box, press **Win+V** and pick the message (the top text item).
 3. Send.
 
-**Explorer (other apps):** drag `<file>` from the Explorer window into the chat or email, paste the message with Ctrl+V, send.
+**EXPLORER MODE:** drag `<file>` from the open Explorer window into the chat (or email), click the caption box, press Ctrl+V, send.
 
 **No attachment:** Ctrl+V in the chat and send.
 
