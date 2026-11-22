@@ -6,7 +6,7 @@ live right away, and `git` carries it to the other machine.
 
 | Folder | What | Linked from |
 |---|---|---|
-| `skills/` | handoff, pickup, ship, report, triage, pull-latest | `~/.claude/skills/<name>` |
+| `skills/` | handoff, pickup, ship, report, triage, pull-latest, message-pack | `~/.claude/skills/<name>` |
 | `scripts/` | handoff + usage nudges, Chrome toast, deploy watcher, screenshot shrink, status line, `kit.js` | `~/.claude/scripts` |
 | `memory/<workspace>/` | Claude's notes per project | `~/.claude/projects/<folder-slug>/memory` |
 | `config/projects.json` | NexTask project → repos, branches | read by `kit.js projects` |

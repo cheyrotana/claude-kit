@@ -11,3 +11,4 @@
 - [Line endings local fix](line-endings-local.md) — autocrlf caused CRLF diffs; fixed locally only (never push .gitattributes); website pending
 - [Ship/report workflow](ship-report-workflow.md) — fix → /ship (checks, push, MR links, trackers) → deploy → /report (verify, screenshot, Request Review)
 - [Claude kit](claude-kit.md) — skills/scripts/hooks/memory live in git repo D:\Projects\claude-kit (linked); "save the kit" pushes; laptop uses setup.js
+- [File paths](full-file-paths.md) — name project files relative to PY root incl. repo folder (api/src/…); outside-project files keep full paths
